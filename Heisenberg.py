@@ -1,14 +1,17 @@
 from qiskit import QuantumCircuit, transpile, Aer, IBMQ, assemble, execute
+from qiskit.quantum_info import DensityMatrix
 from qiskit.visualization import *
 from qiskit.providers.aer import QasmSimulator
 from qiskit.providers.aer.library import SaveState
 from qiskit.providers.ibmq import least_busy
 from qiskit.tools.monitor import job_monitor
 from qiskit.providers.aer.noise import NoiseModel
+from qiskit.providers.aer import extensions  # import aer snapshot instructions
 import copy
 import numpy as np
 import matplotlib.pyplot as plt
 from qiskit.opflow import Zero, One, I, X, Y, Z, VectorStateFn
+from qiskit.test.mock import FakeJakarta
 
 def heis_op(pauli_idx, pair, Nq):
 	"""
@@ -84,60 +87,81 @@ def trotter_step(qc, t_n, qbts):
 
 	return qc #.to_instruction()
 
-N = 2 # number of trotter steps
-nq = 5
-qbts = [0,1,2]
+nq = 7
+qbts = [1,3,5]
 T = np.pi
 
-qc= QuantumCircuit(nq)
-qc.x(qbts[-2])
-qc.x(qbts[-1])
-
-
-for j in range(N):
-	qc = trotter_step(qc, T/N, qbts)
-
-# qc.save_statevector()
+# True result
+init_state = Zero^One^Zero^One^Zero^Zero^Zero
+wf_true = (U_heis(T, qbts, nq) @ init_state).eval()
+wf_true = wf_true.to_matrix()
 
 # simulate
 provider = IBMQ.load_account()
-backend = provider.get_backend('ibmq_santiago')
+
+key = "8d5d40203b561a03caba49fffcc0f33968d812029bcfd8bf09a2992df0cb9de632e3eb47ccb09421b6fbad972460972dd1d07efcaf7d024d4307b0601cb21a4f"
+IBMQ.save_account(key, overwrite=True)
+provider = IBMQ.get_provider(hub='ibm-q-community', group='ibmquantumawards', project='open-science-22')
+backend = provider.get_backend("ibmq_jakarta")
+# backend = FakeJakarta()
 noise_model = NoiseModel.from_backend(backend)
 
 coupling_map = backend.configuration().coupling_map
 basis_gates = noise_model.basis_gates
-basis_gates.extend(['rxx','ryy','rzz'])
-print(basis_gates)
-backend = QasmSimulator(method='density_matrix', noise_model=noise_model)
+basis_gates.extend([ 'save_density_matrix'])
 
-result = execute(qc, backend,
-        coupling_map=coupling_map,
-        basis_gates=basis_gates,
-        noise_model=noise_model).result()
-SaveState(result)
-print(result)
+backend = QasmSimulator(method='density_matrix')
 
-# wf_trot = result.get_statevector()
-# wf_trot = VectorStateFn(wf_trot).to_matrix()
+fidelities = np.zeros([4,11], dtype=float)
 
-# init_state = One^Zero^One^Zero^Zero
-# wf_true = (U_heis(T, qbts, nq) @ init_state).eval()
-# wf_true = wf_true.to_matrix()
+for i in range(4):
+	for j in range(4,15):
 
-# print("Trotter results:")
-# print(wf_trot)
-# print()
+		if i > 0:
+			backend = QasmSimulator(method='density_matrix', noise_model=noise_model)
 
-# print("Real Answer")
-# print(wf_true)
-# print()
+		N = j # number of trotter steps
+
+		qc= QuantumCircuit(nq)
+		qc.x(qbts[-2])
+		qc.x(qbts[-1])
 
 
-# print("Quantum Fidelity")
-# print(np.abs( np.dot(np.conjugate(wf_true), wf_trot) )**2)
+		for k in range(N):
+			qc = trotter_step(qc, T/N, qbts)
 
-# x_vals = np.arange(2**nq)
-# plt.bar(x_vals, np.abs(wf_trot)**2, width=0.25)
-# plt.bar(x_vals+0.25, np.abs(wf_true)**2, width=0.25)
-# plt.grid()
-# plt.show()
+		qc.save_density_matrix()
+
+		result = execute(qc, backend,
+		        coupling_map=coupling_map,
+		        basis_gates=basis_gates,
+		        noise_model=(noise_model if i > 0 else None),
+		        optimization_level=i if i > 0 else None
+		        ).result()
+
+		DM=result.data()['density_matrix']
+
+
+		# wf_trot = result.get_statevector()
+		# wf_trot = VectorStateFn(wf_trot).to_matrix()
+
+		# print("Real Answer")
+		# print(wf_true)
+		# print(DensityMatrix(wf_true))
+
+
+		# print("Quantum Fidelity")
+		# print(np.abs( np.dot(np.conjugate(wf_true), wf_trot) )**2)
+		# print(N, DM.expectation_value(DensityMatrix(wf_true)))
+		fidelities[i,j-4] = np.real(DM.expectation_value(DensityMatrix(wf_true)))
+
+font = {'size'   : 15}
+plt.rc('font', **font)
+labels = ["No Noise", "Noisy - Opt 1", "Noisy - Opt 2","Noisy - Opt 3"]
+steps = np.arange(4,15)
+for k in range(4): plt.bar(steps + 0.2*k - 0.3, fidelities[k,:], width=0.2, label=labels[k])
+plt.xlabel('# Trotter Steps')
+plt.title("Quantum Fidelity vs. # Trotter Steps (Jakarta w/ Noise Model")
+plt.grid()
+plt.legend()
+plt.show()
