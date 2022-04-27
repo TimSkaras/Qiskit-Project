@@ -1,4 +1,4 @@
-from qiskit import QuantumCircuit, transpile, Aer, IBMQ, assemble, execute
+from qiskit import QuantumCircuit, QuantumRegister, transpile, Aer, IBMQ, assemble, execute
 from qiskit.quantum_info import DensityMatrix
 from qiskit.visualization import *
 from qiskit.providers.aer import QasmSimulator
@@ -12,6 +12,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from qiskit.opflow import Zero, One, I, X, Y, Z, VectorStateFn
 from qiskit.test.mock import FakeJakarta
+
+# Import state tomography modules
+from qiskit.ignis.verification.tomography import state_tomography_circuits, StateTomographyFitter
+from qiskit.quantum_info import state_fidelity
 
 def heis_op(pauli_idx, pair, Nq):
 	"""
@@ -87,6 +91,17 @@ def trotter_step(qc, t_n, qbts):
 
 	return qc #.to_instruction()
 
+# Compute the state tomography based on the st_qcs quantum circuits and the results from those ciricuits
+def state_tomo(result, st_qcs):
+    # The expected final state; necessary to determine state tomography fidelity
+    target_state = (One^One^Zero).to_matrix()  # DO NOT MODIFY (|q_5,q_3,q_1> = |110>)
+    # Fit state tomography results
+    tomo_fitter = StateTomographyFitter(result, st_qcs)
+    rho_fit = tomo_fitter.fit(method='lstsq')
+    # Compute fidelity
+    fid = state_fidelity(rho_fit, target_state)
+    return fid
+
 nq = 7
 qbts = [1,3,5]
 T = np.pi
@@ -99,69 +114,84 @@ wf_true = wf_true.to_matrix()
 # simulate
 provider = IBMQ.load_account()
 
-key = "8d5d40203b561a03caba49fffcc0f33968d812029bcfd8bf09a2992df0cb9de632e3eb47ccb09421b6fbad972460972dd1d07efcaf7d024d4307b0601cb21a4f"
-IBMQ.save_account(key, overwrite=True)
-provider = IBMQ.get_provider(hub='ibm-q-community', group='ibmquantumawards', project='open-science-22')
-backend = provider.get_backend("ibmq_jakarta")
-# backend = FakeJakarta()
-noise_model = NoiseModel.from_backend(backend)
+# key = "8d5d40203b561a03caba49fffcc0f33968d812029bcfd8bf09a2992df0cb9de632e3eb47ccb09421b6fbad972460972dd1d07efcaf7d024d4307b0601cb21a4f"
+# IBMQ.save_account(key, overwrite=True)
+# provider = IBMQ.get_provider(hub='ibm-q-community', group='ibmquantumawards', project='open-science-22')
+# backend = provider.get_backend("ibmq_jakarta")
+# # backend = FakeJakarta()
+# noise_model = NoiseModel.from_backend(backend)
 
-coupling_map = backend.configuration().coupling_map
-basis_gates = noise_model.basis_gates
-basis_gates.extend([ 'save_density_matrix'])
+# coupling_map = backend.configuration().coupling_map
+# basis_gates = noise_model.basis_gates
+# basis_gates.extend([ 'save_density_matrix'])
 
-backend = QasmSimulator(method='density_matrix')
+# backend = QasmSimulator(method='density_matrix', noise_model=noise_model)
 
-fidelities = np.zeros([4,11], dtype=float)
+shots = 8192
+reps = 15
 
-for i in range(4):
-	for j in range(4,15):
+fidelities = np.zeros([9,reps], dtype=float)
 
-		if i > 0:
-			backend = QasmSimulator(method='density_matrix', noise_model=noise_model)
+# for i in range(9):
+# 	N = 4 + i # number of trotter steps
 
-		N = j # number of trotter steps
-
-		qc= QuantumCircuit(nq)
-		qc.x(qbts[-2])
-		qc.x(qbts[-1])
+# 	qc = QuantumCircuit(nq)
+# 	qc.x(qbts[-2])
+# 	qc.x(qbts[-1])
 
 
-		for k in range(N):
-			qc = trotter_step(qc, T/N, qbts)
+# 	for k in range(N):
+# 		qc = trotter_step(qc, T/N, qbts)
 
-		qc.save_density_matrix()
-
-		result = execute(qc, backend,
-		        coupling_map=coupling_map,
-		        basis_gates=basis_gates,
-		        noise_model=(noise_model if i > 0 else None),
-		        optimization_level=i if i > 0 else None
-		        ).result()
-
-		DM=result.data()['density_matrix']
+# 	st_qcs = state_tomography_circuits(qc, [1,3,5])
+# 	# qc.save_density_matrix()
 
 
-		# wf_trot = result.get_statevector()
-		# wf_trot = VectorStateFn(wf_trot).to_matrix()
 
-		# print("Real Answer")
-		# print(wf_true)
-		# print(DensityMatrix(wf_true))
+# 	runs = []
 
+# 	for k in range(reps):
 
-		# print("Quantum Fidelity")
-		# print(np.abs( np.dot(np.conjugate(wf_true), wf_trot) )**2)
-		# print(N, DM.expectation_value(DensityMatrix(wf_true)))
-		fidelities[i,j-4] = np.real(DM.expectation_value(DensityMatrix(wf_true)))
+# 		run = execute(st_qcs, backend,
+# 		        coupling_map=coupling_map,
+# 		        basis_gates=basis_gates,
+# 		        noise_model=noise_model,
+# 		        optimization_level=3,
+# 		        shots = shots,
+# 		        )
+# 		runs.append(run)
+
+# 	for k in range(reps):
+# 		fidelities[i, k] = (state_tomo(runs[k].result(), st_qcs))
+
+# np.save('fidelities.npy', fidelities)
+fidelities = np.load('fidelities.npy')
+
+means = np.mean(fidelities, axis=1)
+stds = np.std(fidelities, axis=1)
+
 
 font = {'size'   : 15}
 plt.rc('font', **font)
-labels = ["No Noise", "Noisy - Opt 1", "Noisy - Opt 2","Noisy - Opt 3"]
-steps = np.arange(4,15)
-for k in range(4): plt.bar(steps + 0.2*k - 0.3, fidelities[k,:], width=0.2, label=labels[k])
+steps = np.arange(4,4+9)
+plt.errorbar(steps, means, stds, capsize=3.5)
 plt.xlabel('# Trotter Steps')
-plt.title("Quantum Fidelity vs. # Trotter Steps (Jakarta w/ Noise Model")
+plt.title("Tomography Fidelity vs. # Trotter Steps (Measuring Noise Model)")
+plt.ylim([0,.5])
 plt.grid()
-plt.legend()
 plt.show()
+
+
+# DM=result.data()['density_matrix']
+
+
+# font = {'size'   : 15}
+# plt.rc('font', **font)
+# labels = ["No Noise", "Noisy - Opt 1", "Noisy - Opt 2","Noisy - Opt 3"]
+# steps = np.arange(4,15)
+# for k in range(4): plt.bar(steps + 0.2*k - 0.3, fidelities[k,:], width=0.2, label=labels[k])
+# plt.xlabel('# Trotter Steps')
+# plt.title("Quantum Fidelity vs. # Trotter Steps (Jakarta w/ Noise Model")
+# plt.grid()
+# plt.legend()
+# plt.show()
