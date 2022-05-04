@@ -118,49 +118,55 @@ key = "8d5d40203b561a03caba49fffcc0f33968d812029bcfd8bf09a2992df0cb9de632e3eb47c
 IBMQ.save_account(key, overwrite=True)
 provider = IBMQ.get_provider(hub='ibm-q-community', group='ibmquantumawards', project='open-science-22')
 backend = provider.get_backend("ibmq_jakarta")
-# # backend = FakeJakarta()
-# noise_model = NoiseModel.from_backend(backend)
+# backend = FakeJakarta()
+noise_model = NoiseModel.from_backend(backend)
 
 coupling_map = backend.configuration().coupling_map
 basis_gates = backend.configuration().basis_gates
-# basis_gates.extend([ 'save_density_matrix'])
+
 
 # backend = QasmSimulator(method='density_matrix', noise_model=noise_model)
 
 shots = 8192
-reps = 15
+reps = 6
 
-# fidelities = np.zeros([9,reps], dtype=float)
+N = 7
 
-# for i in range(1):
-# 	N = 4 + i # number of trotter steps
-
-# 	qc = QuantumCircuit(nq)
-# 	qc.x(qbts[-2])
-# 	qc.x(qbts[-1])
+qc = QuantumCircuit(nq)
+qc.x(qbts[-2])
+qc.x(qbts[-1])
 
 
-# 	for k in range(N):
-# 		qc = trotter_step(qc, T/N, qbts)
+for k in range(N):
+	qc = trotter_step(qc, T/N, qbts)
 
-# 	st_qcs = state_tomography_circuits(qc, [1,3,5])
-# 	# qc.save_density_matrix()
+st_qcs = state_tomography_circuits(qc, [1,3,5])
 
-# 	runs = []
+runs = []
+fids = []
 
-# 	for k in range(reps):
+for i in range(reps):
 
-# 		run = execute(st_qcs, backend,
-# 		        coupling_map=coupling_map,
-# 		        basis_gates=basis_gates,
-# 		        noise_model=noise_model,
-# 		        optimization_level=3,
-# 		        shots = shots,
-# 		        )
-# 		runs.append(run)
+	run = execute(st_qcs, backend,
+				basis_gates=basis_gates,
+				coupling_map=coupling_map,
+				# noise_model=noise_model,
+		        optimization_level=3,
+		        shots = shots,
+		        )
+	runs.append(run)
 
-# 	for k in range(reps):
-# 		fidelities[i, k] = (state_tomo(runs[k].result(), st_qcs))
+for i in range(reps):
+	fidelity = state_tomo(runs[i].result(), st_qcs)
+	fids.append(fidelity)
+
+print(fids)
+print(np.mean(fids))
+print(np.std(fids))
+np.save("realFidelities.npy", fids)
+
+# for k in range(reps):
+# 	fidelities[i, k] = (state_tomo(runs[k].result(), st_qcs))
 
 # np.save('fidelities.npy', fidelities)
 # fidelities = np.load('fidelities.npy')
