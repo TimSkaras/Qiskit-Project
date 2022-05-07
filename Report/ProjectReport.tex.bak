@@ -14,7 +14,7 @@
 \usepackage{physics, qcircuit}
 \usepackage{breqn}
 %\usepackage{url}
-\usepackage{natbib, courier}
+\usepackage{natbib, courier, breqn}
 \bibliographystyle{apsrev4-2}
 
 
@@ -44,9 +44,10 @@ For our simulation task we will be using the \texttt{ibmq\_jakarta} device. This
 \section{Quantum Simulation}
 
 The Heisenberg model, in its most general form, is defined as
-\begin{equation}
-H =- \sum_{j=1}^{N}\left(J_{x} \sigma_{j}^{x} \sigma_{j+1}^{x}+J_{y} \sigma_{j}^{y} \sigma_{j+1}^{y}+J_{z} \sigma_{j}^{z} \sigma_{j+1}^{z}+h \sigma_{j}^{z}\right),
-\end{equation}
+\begin{dmath}
+H =- \sum_{j=1}^{N}\left(J_{x} \sigma_{j}^{x} \sigma_{j+1}^{x}+J_{y} \sigma_{j}^{y} \sigma_{j+1}^{y}\\
++J_{z} \sigma_{j}^{z} \sigma_{j+1}^{z}+h \sigma_{j}^{z}\right),
+\end{dmath}
 where $h$ is the external magnetic field and $J_x$, $J_y$, and $J_z$ are the couplings along the x, y, and z directions respectively. The subscript $j$ denotes the site that each spin operator is acting on, and $\sigma$'s are the pauli matrices which are given by 
 \begin{equation}
 \begin{array}{c}
@@ -64,7 +65,7 @@ i & 0
 \end{array}\right)
 \end{array}
 \end{equation}
-when written in the z-basis. We will be considering the XXX Heisenberg model where $J = J_x = J_y = J_z$ and $h =0$. 
+when written in the z-basis. We will be considering the XXX Heisenberg model where $J = J_x = J_y = J_z$ and $h =0$. For simplicity, we will assume $J=1$ throughout this paper.  
 
 The Heisenberg model is useful for studying the studying the dynamics and behavior of quantum mechanical magnetic interactions of spins. We will be simulating the quantum mechanical version of the Heisenberg model on three spin-$\frac{1}{2}$ particles. For our task, we start with the initial condition
 \begin{equation}
@@ -74,7 +75,7 @@ with open boundary conditions and seek to simulate a total amount of time $\tau 
 \begin{equation}
 \ket{\psi(t=\tau)} = e^{-i \hat{H} \tau}\ket{\psi(0)},
 \end{equation}
-so for our problem the time evolution operator is the exponential of a sum of pauli strings. For instance, we could generically write the hamiltonian as
+where we have set $\hbar = 1$. For our problem the time evolution operator is the exponential of a sum of pauli strings. For instance, we could generically write the hamiltonian as
 \begin{equation}
 H = \sum_i h_i
 \end{equation}
@@ -107,23 +108,41 @@ e^{(h_1 + h_2)t}&=\lim _{n \rightarrow \infty}\left(e^{h_1 t/ n} e^{h_2 t / n}\r
 Using the Zassenhaus formula 
 \begin{align*}
 e^{t(h_1+h_2)}&=e^{t h_1} e^{t h_2} e^{-\frac{t^{2}}{2}[h_1, h_2]}\cdots\\
-&= e^{t h_1} e^{t h_2}(1 -\frac{t^{2}}{2}[h_1, h_2] + \cdots)
-&=e^{t h_1} e^{t h_2} + \mathcal{O(t^2)}
+&= e^{t h_1} e^{t h_2}(1 -\frac{t^{2}}{2}[h_1, h_2] + \cdots)\\
+&=e^{t h_1} e^{t h_2} + \mathcal{O}(t^2),
 \end{align*}
+we can see that this trotterization method has a second-order accuracy \cite{dupays2021closed}.
 Recalling the commutation relation for pauli matrices
 \begin{equation}
 [\sigma^{i}, \sigma^{j}] = 2i \epsilon_{ijk}\sigma^{k}, \quad \{\sigma^{i}, \sigma^{j}\} = 2\delta_{ij	},
 \end{equation}
 where $i,j,k$ can be $1,2,$ or 3 for each possible axis, we see that different pauli matrices do not commute and will actually anticommute. So for instance, the term $\sigma_{1}^{x} \sigma_{2}^{x}$ will commute with other terms acting on the same two sites such as $\sigma_{1}^{y} \sigma_{2}^{y}$ but will not commute with terms such as $\sigma_{2}^{z} \sigma_{3}^{z}$.
 
-
+Because our system is only three qubits, we can write out the full time evolution operator
+\begin{dmath}
+U(t) = \exp\left[-i(\sigma_{1}^{x} \sigma_{2}^{x} + \sigma_{1}^{y} \sigma_{2}^{y} + \sigma_{1}^{z} \sigma_{2}^{z} \\
++ \sigma_{2}^{x} \sigma_{3}^{x} + \sigma_{2}^{y} \sigma_{3}^{y} + \sigma_{2}^{z} \sigma_{3}^{z})t\right].
+\end{dmath}
+With trotterization over N time steps this becomes
+\begin{align*}
+U(t) &\approx \left(e^{\frac{-it}{N}\sum_\gamma\sigma_{1}^{\gamma} \sigma_{2}^{\gamma}}e^{\frac{-it}{N}\sum_\gamma\sigma_{2}^{\gamma} \sigma_{3}^{\gamma}}\right)^N\\
+&\approx \left(\prod_{\gamma}e^{\frac{-it}{N}\sigma_{1}^{\gamma} \sigma_{2}^{\gamma}}\prod_{\gamma}e^{\frac{-it}{N}\sigma_{2}^{\gamma} \sigma_{3}^{\gamma}}\right)^N,
+\end{align*}
+where no additional approximation has been made between the first and second lines because the pauli strings acting on the same sites commute and the sums/products are over $\gamma =x,y,z$. We have now simplified the time evolution operator into unitary gates that we can directly implement on the quantum device.
 
 \section{Simulation Results}
+
+It is difficult to obtain access to the \texttt{ibmq\_jakarta} device, so we will first optimize our circuit using noise models on simulators. Our goal is to simulate the Heisenberg model for a total time $\tau=\pi$ with the highest fidelity possible. This amount of time $\tau$ is convenient because our specific initial condition $\ket{\psi(0)}=\ket{110}$ returns exactly to its initial state $\ket{\psi(\tau)}=\ket{110}$ after this length of time. To find the fidelity of our circuit output we will first perform measurements in the pauli basis and reconstruct the state using quantum tomography [citation]. Let $\tilde{\rho}$ be the state reconstruction output from our quantum tomography process and let $\rho = \dyad{110}$ be our target state. Because our target state is pure, the quantum fidelity has a simple formula
+\begin{equation}
+F(\rho, \tilde{\rho}) = \Tr[\rho\tilde{\rho}].
+\end{equation}
+
+ Theoretically, more trotter steps corresponds to a higher fidelity, but in practice the devices are noisy and adding trotter steps increase fidel 
 
 \section{Ibmq Jakarta Results}
 
 \section{Conclusion}
 
-\bibliography{QiskitReportBib}
+\bibliography{ProjectReportBib}
 
 \end{document}
