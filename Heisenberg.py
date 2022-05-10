@@ -114,70 +114,75 @@ wf_true = wf_true.to_matrix()
 # simulate
 provider = IBMQ.load_account()
 
-key = "8d5d40203b561a03caba49fffcc0f33968d812029bcfd8bf09a2992df0cb9de632e3eb47ccb09421b6fbad972460972dd1d07efcaf7d024d4307b0601cb21a4f"
+key = "581de39b518aac3a756e97f2927f7fe5de29f9d237c18fc83f7636d90fc780f1fb3fd4e46f1c54656fefe3cad052a476195cbdb84068f53c111b902bdb38b86d"
 IBMQ.save_account(key, overwrite=True)
 provider = IBMQ.get_provider(hub='ibm-q-community', group='ibmquantumawards', project='open-science-22')
 backend = provider.get_backend("ibmq_jakarta")
 # # backend = FakeJakarta()
-# noise_model = NoiseModel.from_backend(backend)
+noise_model = NoiseModel.from_backend(backend, temperature=10)
 
 coupling_map = backend.configuration().coupling_map
 basis_gates = backend.configuration().basis_gates
-# basis_gates.extend([ 'save_density_matrix'])
 
-# backend = QasmSimulator(method='density_matrix', noise_model=noise_model)
+backend = QasmSimulator(method='density_matrix')#, noise_model=noise_model)
 
 shots = 8192
-reps = 15
+reps = 1
 
-# fidelities = np.zeros([9,reps], dtype=float)
+noisy_fidelities = np.load("noisy_fidelities.npy")
+# nl_fidelities =  np.load("nl_fidelities.npy")
+fidelities = np.zeros([9,reps], dtype=float)
+# fidelities = nl_fidelities
 
-# for i in range(1):
-# 	N = 4 + i # number of trotter steps
+for i in range(9):
+	N = 4 + i # number of trotter steps
 
-# 	qc = QuantumCircuit(nq)
-# 	qc.x(qbts[-2])
-# 	qc.x(qbts[-1])
-
-
-# 	for k in range(N):
-# 		qc = trotter_step(qc, T/N, qbts)
-
-# 	st_qcs = state_tomography_circuits(qc, [1,3,5])
-# 	# qc.save_density_matrix()
-
-# 	runs = []
-
-# 	for k in range(reps):
-
-# 		run = execute(st_qcs, backend,
-# 		        coupling_map=coupling_map,
-# 		        basis_gates=basis_gates,
-# 		        noise_model=noise_model,
-# 		        optimization_level=3,
-# 		        shots = shots,
-# 		        )
-# 		runs.append(run)
-
-# 	for k in range(reps):
-# 		fidelities[i, k] = (state_tomo(runs[k].result(), st_qcs))
-
-# np.save('fidelities.npy', fidelities)
-# fidelities = np.load('fidelities.npy')
-
-# means = np.mean(fidelities, axis=1)
-# stds = np.std(fidelities, axis=1)
+	qc = QuantumCircuit(nq)
+	qc.x(qbts[-2])
+	qc.x(qbts[-1])
 
 
-# font = {'size'   : 15}
-# plt.rc('font', **font)
-# steps = np.arange(4,4+9)
-# plt.errorbar(steps, means, stds, capsize=3.5)
-# plt.xlabel('# Trotter Steps')
-# plt.title("Tomography Fidelity vs. # Trotter Steps (Measuring Noise Model)")
-# plt.ylim([0,.5])
-# plt.grid()
-# plt.show()
+	for k in range(N):
+		qc = trotter_step(qc, T/N, qbts)
+
+	# qc.draw('mpl')
+
+	st_qcs = state_tomography_circuits(qc, [1,3,5])
+	# qc.save_density_matrix()
+
+	runs = []
+
+	for k in range(reps):
+
+		run = execute(st_qcs, backend,
+		        coupling_map=coupling_map,
+		        basis_gates=basis_gates,
+		        # noise_model=noise_model,
+		        optimization_level=3,
+		        shots = shots,
+		        )
+		runs.append(run)
+
+	for k in range(reps):
+		fidelities[i, k] = (state_tomo(runs[k].result(), st_qcs))
+
+
+noise2_means = np.mean(fidelities, axis=1)
+noise2_stds = np.std(fidelities, axis=1)
+noisy_means = np.mean(noisy_fidelities, axis=1)
+noisy_stds = np.std(noisy_fidelities, axis=1)
+
+font = {'size'   : 15}
+plt.rc('font', **font)
+steps = np.arange(4,4+9)
+plt.errorbar(steps, noisy_means, noisy_stds, capsize=3.5, label="Default Noise")
+plt.errorbar(steps, noise2_means, nl_stds, capsize=3.5, label="Modified Noise")
+plt.xlabel('# Trotter Steps')
+plt.title("Tomography Fidelity vs. # Trotter Steps")
+plt.ylim([0,1])
+plt.legend()
+plt.grid()
+plt.show()
 
 
 # DM=result.data()['density_matrix']

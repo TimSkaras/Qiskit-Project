@@ -33,7 +33,7 @@ We estimate the entanglement entropy of the GHZ state using both simulated and r
 
 \section{Experimental Hardware}
 
-For our simulation task we will be using the \texttt{ibmq\_jakarta} device. This is a 7 qubit quantum computer that whose qubits are connected as depicted in figure \ref{fig:JakartaConnect}. Our simulation task will require us to use gates on this device, but like many other devices \texttt{ibmq\_jakarta} has a limited gate set. This means that any gate we want to execute on the device must either be in the gate set or must be broken down into the composition of gates in the gate set. The gate set on this device consists of $R_z(\theta)$; $X$, $\sqrt{X}$, and $CNOT$ gates. The first gate $R_z(\theta)$ is an arbitrary single qubit rotation about the z-axis. The second is the $\sigma^{x}$ or NOT gate. The third $\sqrt{X}$ is the square root of the NOT gate, and the last $CNOT$ is the controlled not gate. We note that $\sqrt{X}$ is equivalent (differs only by a global phase) to a $\pi/2$ rotation about the x-axis $R_x(\pi/2)$.
+For our simulation task we will be using the \texttt{ibmq\_jakarta} device. This is a 7 qubit quantum computer whose qubits are connected as depicted in figure \ref{fig:JakartaConnect}. Our simulation task will require us to use gates on this device, but like many other devices \texttt{ibmq\_jakarta} has a limited gate set. This means that any gate we want to execute on the device must either be in the gate set or must be broken down into some composition of gates in the gate set. The gate set on this device consists of $R_z(\theta)$, $X$, $\sqrt{X}$, and $CNOT$ gates. The first gate $R_z(\theta)$ is an arbitrary single qubit rotation about the z-axis. The second is the $\sigma^{x}$ or NOT gate. The third $\sqrt{X}$ is the square root of the NOT gate, and the last $CNOT$ is the controlled not gate. We note that $\sqrt{X}$ is equivalent (differs only by a global phase) to a $\pi/2$ rotation about the x-axis $R_x(\pi/2)$.
 
 \begin{figure}
 \includegraphics[width=0.4\textwidth]{JakartaDiagram.png}
@@ -112,13 +112,14 @@ e^{t(h_1+h_2)}&=e^{t h_1} e^{t h_2} e^{-\frac{t^{2}}{2}[h_1, h_2]}\cdots\\
 &=e^{t h_1} e^{t h_2} + \mathcal{O}(t^2),
 \end{align*}
 we can see that this trotterization method has a second-order accuracy \cite{dupays2021closed}.
-Recalling the commutation relation for pauli matrices
+
+Recalling the commutation relations for pauli matrices
 \begin{equation}
 [\sigma^{i}, \sigma^{j}] = 2i \epsilon_{ijk}\sigma^{k}, \quad \{\sigma^{i}, \sigma^{j}\} = 2\delta_{ij	},
 \end{equation}
 where $i,j,k$ can be $1,2,$ or 3 for each possible axis, we see that different pauli matrices do not commute and will actually anticommute. So for instance, the term $\sigma_{1}^{x} \sigma_{2}^{x}$ will commute with other terms acting on the same two sites such as $\sigma_{1}^{y} \sigma_{2}^{y}$ but will not commute with terms such as $\sigma_{2}^{z} \sigma_{3}^{z}$.
 
-Because our system is only three qubits, we can write out the full time evolution operator
+Because our system is only three qubits, we can easily write out the full time evolution operator
 \begin{dmath}
 U(t) = \exp\left[-i(\sigma_{1}^{x} \sigma_{2}^{x} + \sigma_{1}^{y} \sigma_{2}^{y} + \sigma_{1}^{z} \sigma_{2}^{z} \\
 + \sigma_{2}^{x} \sigma_{3}^{x} + \sigma_{2}^{y} \sigma_{3}^{y} + \sigma_{2}^{z} \sigma_{3}^{z})t\right].
@@ -128,18 +129,40 @@ With trotterization over N time steps this becomes
 U(t) &\approx \left(e^{\frac{-it}{N}\sum_\gamma\sigma_{1}^{\gamma} \sigma_{2}^{\gamma}}e^{\frac{-it}{N}\sum_\gamma\sigma_{2}^{\gamma} \sigma_{3}^{\gamma}}\right)^N\\
 &\approx \left(\prod_{\gamma}e^{\frac{-it}{N}\sigma_{1}^{\gamma} \sigma_{2}^{\gamma}}\prod_{\gamma}e^{\frac{-it}{N}\sigma_{2}^{\gamma} \sigma_{3}^{\gamma}}\right)^N,
 \end{align*}
-where no additional approximation has been made between the first and second lines because the pauli strings acting on the same sites commute and the sums/products are over $\gamma =x,y,z$. We have now simplified the time evolution operator into unitary gates that we can directly implement on the quantum device.
+where the sums/products are over $\gamma =x,y,z$. No additional approximation has been made between the first and second lines because the pauli strings acting on the same sites commute. We have now simplified the time evolution operator into unitary gates that we can directly implement on the quantum device. In figure \ref{fig:TrotterCircuit} we show an example of a trotterized circuit with $N=2$. Note that this circuit has not been compiled for our specific device, so when the circuit is executed the two qubit gates will need to be decomposed into gates that are in our gate set.
+
+\begin{figure*}[t]
+\includegraphics[width=\textwidth]{../Trotterization.png}
+\caption{Circuit diagram of trotterization with two steps. The gates $R_{xx}$, $R_{yy}$, $R_{zz}$ are two qubit rotations (e.g., equation \ref{eqn:rzz} is $R_{zz}(2t)$). The qubits are all initially in the $\ket{0}$ state, and the two $X$ gates flip two qubits to give us the initial condition $\ket{110}$ on qubits 5, 3, and 1 respectively.}
+\label{fig:TrotterCircuit}
+\end{figure*}
+
 
 \section{Simulation Results}
 
-It is difficult to obtain access to the \texttt{ibmq\_jakarta} device, so we will first optimize our circuit using noise models on simulators. Our goal is to simulate the Heisenberg model for a total time $\tau=\pi$ with the highest fidelity possible. This amount of time $\tau$ is convenient because our specific initial condition $\ket{\psi(0)}=\ket{110}$ returns exactly to its initial state $\ket{\psi(\tau)}=\ket{110}$ after this length of time. To find the fidelity of our circuit output we will first perform measurements in the pauli basis and reconstruct the state using quantum tomography [citation]. Let $\tilde{\rho}$ be the state reconstruction output from our quantum tomography process and let $\rho = \dyad{110}$ be our target state. Because our target state is pure, the quantum fidelity has a simple formula
+It is difficult to obtain access to the \texttt{ibmq\_jakarta} device, so we will first optimize our circuit using noise models on simulators. Our goal is to simulate the Heisenberg model for a total time $\tau=\pi$ with the highest fidelity possible. This amount of time $\tau$ is convenient because our specific initial condition $\ket{\psi(0)}=\ket{110}$ returns exactly to its initial state $\ket{\psi(\tau)}=\ket{110}$ after this length of time. Before we can compute the quantum fidelity of the final state on our circuit, we must first determine what the state is. On a real device, we do not have direct access to the exact state and must reconstruct the state based on measurement outcomes. So, we perform measurements in the pauli basis and use built-in Qiskit routines to do quantum tomography [citation].
+
+Let $\tilde{\rho}$ be the state reconstruction output from our quantum tomography process and let $\rho = \dyad{110}$ be our target state. Because our target state is pure, the quantum fidelity has a simple formula
 \begin{equation}
 F(\rho, \tilde{\rho}) = \Tr[\rho\tilde{\rho}].
 \end{equation}
+Theoretically on a perfect device, more trotter steps improves the accuracy of the time-evolution operator and hence increases the fidelity of the final state. In practice, however, the devices are very noisy and adding trotter steps will eventually make the fidelity worse. Using noise models on simulators will allow us to quickly determine the optimal number of trotter steps. 
 
- Theoretically, more trotter steps corresponds to a higher fidelity, but in practice the devices are noisy and adding trotter steps increase fidel 
+In figure \ref{fig:SimFids}, we show how adding more trotter steps (increasing N) changes the fidelity of the final state. We see that in the absence of noise (orange line) the fidelity monotonically increases with the number of trotter steps as expected. Once we account for noise, however, we see the fidelity actually gets worse after 9 trotter steps (blue line). The error bars indicate the standard deviation of the computed fidelity over 15 repetitions. Each repetition consists of 8192 shots on each tomography circuit (8192 measurements in each basis).
+
+The noise models take into account characteristics specific to the device we are trying to simulate \texttt{ibmq\_jakarta}. These characteristics include the single and two qubit gate error rates, the thermal relaxation time, and single qubit measurement errors on all measurements. 
+
+\begin{figure}
+\includegraphics[width=0.5\textwidth]{../TomographyFidelities.png}
+\caption{We compare how the number of trotter steps affects fidelity with and without noise. Both results were obtained using a simulator on a classical computer. The orange line shows the fidelity on a perfect quantum computer (no noise), and the blue line uses Qiskit noise models to predict how the fidelity would behave on a real device.}
+\label{fig:SimFids}
+\end{figure}
 
 \section{Ibmq Jakarta Results}
+
+While we were able to obtain access to \texttt{ibmq\_jakarta} for some jobs, the wait time was too long for it to be practical to recreate figure \ref{fig:SimFids} with results from the real device. Instead, we chose a fixed number of trotter steps (N=7) and computed the quantum fidelity on 6 repetitions. Like before, we performed 8192 measurements in each basis on each repetition. The average fidelity we obtained was $0.24 \pm .01$. While this is less than half the number of repetitions we had in the simulations, the standard deviation is so small that it is highly unlikely additional repetitions would be informative in any meaningful way.
+
+The average fidelity for N=7 trotter steps on the noisy simulator was $0.45 \pm .001$. Given the small uncertainties on both fidelities, we can conclude the real device's performance is substantially worse than the noisy simulator and that this performance difference statistically significant.
 
 \section{Conclusion}
 
