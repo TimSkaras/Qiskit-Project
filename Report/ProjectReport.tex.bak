@@ -31,15 +31,21 @@ We estimate the entanglement entropy of the GHZ state using both simulated and r
 
 \section{Introduction}
 
-\section{Experimental Hardware}
+It is well known that quantum mechanical systems are difficult to solve with classical computers due to the exponential nature of quantum systems. The state space of a classical system grows linearly with the number of particles. For instance, if you are studying classical particles in a 3D box, you only need an additional 6 parameters to specify the state of the system with one more particle (3 positions and 3 momenta). In contrast, if you have spin-$\frac{1}{2}$ particles on a lattice, the size of the Hilbert space doubles with each particle you add, so in the worst case you need twice as much memory to specify the wave function of such a system. 
 
-For our simulation task we will be using the \texttt{ibmq\_jakarta} device. This is a 7 qubit quantum computer whose qubits are connected as depicted in figure \ref{fig:JakartaConnect}. Our simulation task will require us to use gates on this device, but like many other devices \texttt{ibmq\_jakarta} has a limited gate set. This means that any gate we want to execute on the device must either be in the gate set or must be broken down into some composition of gates in the gate set. The gate set on this device consists of $R_z(\theta)$, $X$, $\sqrt{X}$, and $CNOT$ gates. The first gate $R_z(\theta)$ is an arbitrary single qubit rotation about the z-axis. The second is the $\sigma^{x}$ or NOT gate. The third $\sqrt{X}$ is the square root of the NOT gate, and the last $CNOT$ is the controlled not gate. We note that $\sqrt{X}$ is equivalent (differs only by a global phase) to a $\pi/2$ rotation about the x-axis $R_x(\pi/2)$.
+In 1982, Richard Feynman proposed a way of getting around this exponential scaling problem: use quantum mechanical systems to simulate quantum mechanical systems -- in other words, use a quantum computer \cite{feynman1982simulating}. For instance, if you are interested in computing dynamics, quantum computers are advantageous because the coefficient on each basis vector in the Hilbert space is not explicitly specified or stored, so quantum computers do not have this exponential problem. As the state space grows, computing dynamics becomes even more difficult because the number of elements in an unitary matrix is the square of the Hilbert space dimension. Quantum computing allows us to avoid these problems, which is why quantum computers hold immense potential for advancing our understanding of condensed matter systems.
 
-\begin{figure}
+Theoretically, time evolving a quantum state on a quantum computer with a given Hamiltonian is as simple as adding the right unitary gate to the quantum circuit. Most real quantum devices, however, have a finite gate set, and it is usually not possible to implement the time evolution operator exactly on the quantum computer. If the gate set is universal, it is guaranteed that we can implement a gate that is arbitrarily close to the correct time evolution operator (assuming perfect fidelity). Quantum simulation is the task of finding ways to approximate and implement time evolution operators with a limited gate set \cite{lloyd1996universal}.
+
+In this paper, we will use quantum simulation techniques to simulate the dynamics of the Heisenberg model. The Heisenberg model is a quantum mechanical model that describes the magnetic interactions of spins on a lattice. We will be working with three spin-$\frac{1}{2}$ particles in 1D, and our goal will be to simulate the dynamics with as high a fidelity as possible on the \texttt{ibmq\_jakarta} device, 7 qubit quantum computer hosted by IBM.
+\begin{figure}[b]
 \includegraphics[width=0.4\textwidth]{JakartaDiagram.png}
 \caption{This figure depicts how the qubits of the \texttt{ibmq\_jakarta} device are connected to one another. Two qubit gates can only be performed on connected qubits.}
 \label{fig:JakartaConnect}
 \end{figure}
+\section{Experimental Hardware}
+
+For our simulation task we will be using the \texttt{ibmq\_jakarta} device. This is a 7 qubit quantum computer whose qubits are connected as depicted in figure \ref{fig:JakartaConnect}. Our simulation task will require us to use gates on this device, but like many other devices \texttt{ibmq\_jakarta} has a limited gate set. This means that any gate we want to execute on the device must either be in the gate set or must be broken down into some composition of gates in the gate set. The gate set on this device consists of $R_z(\theta)$, $X$, $\sqrt{X}$, and $CNOT$ gates. The first gate $R_z(\theta)$ is an arbitrary single qubit rotation about the z-axis. The second is the $\sigma^{x}$ or NOT gate. The third $\sqrt{X}$ is the square root of the NOT gate, and the last $CNOT$ is the controlled not gate. We note that $\sqrt{X}$ is equivalent (differs only by a global phase) to a $\pi/2$ rotation about the x-axis $R_x(\pi/2)$.
 
 \section{Quantum Simulation}
 
@@ -89,7 +95,7 @@ Our native gate set lets us do single-qubit z-rotations which are defined as
 R_{z}(2t)=e^{-i \sigma^{z}_1 \otimes I t },
 \end{equation}
 where the identity is made explicit for clarity. We can turn this into a two qubit rotation by noticing that a $Z$ gate with a CNOT on either side is equivalent to a Z gate on two qubits, i.e., CNOT $(\sigma^{z} \otimes I)$ CNOT = $\sigma^{z} \otimes \sigma^{z}$. This relationship still holds when $\sigma^{z} \otimes I$ is in an exponential (see figure \ref{fig:rzz}). 
-\begin{figure}
+\begin{figure}[t]
 \includegraphics[width=0.35\textwidth]{Rzz.png}
 \caption{This circuit shows a z-rotation sandwiched between two CNOT gates. This circuit is equivalent to the two qubit rotation given in equation (\ref{eqn:rzz}).}
 \label{fig:rzz}
@@ -112,6 +118,11 @@ e^{t(h_1+h_2)}&=e^{t h_1} e^{t h_2} e^{-\frac{t^{2}}{2}[h_1, h_2]}\cdots\\
 &=e^{t h_1} e^{t h_2} + \mathcal{O}(t^2),
 \end{align*}
 we can see that this trotterization method has a second-order accuracy \cite{dupays2021closed}.
+\begin{figure*}[t]
+\includegraphics[width=\textwidth]{../Trotterization.png}
+\caption{Circuit diagram of trotterization with two steps. The gates $R_{xx}$, $R_{yy}$, $R_{zz}$ are two qubit rotations (e.g., equation \ref{eqn:rzz} is $R_{zz}(2t)$). The qubits are all initially in the $\ket{0}$ state, and the two $X$ gates flip two qubits to give us the initial condition $\ket{110}$ on qubits 5, 3, and 1 respectively.}
+\label{fig:TrotterCircuit}
+\end{figure*}
 
 Recalling the commutation relations for pauli matrices
 \begin{equation}
@@ -130,13 +141,6 @@ U(t) &\approx \left(e^{\frac{-it}{N}\sum_\gamma\sigma_{1}^{\gamma} \sigma_{2}^{\
 &\approx \left(\prod_{\gamma}e^{\frac{-it}{N}\sigma_{1}^{\gamma} \sigma_{2}^{\gamma}}\prod_{\gamma}e^{\frac{-it}{N}\sigma_{2}^{\gamma} \sigma_{3}^{\gamma}}\right)^N,
 \end{align*}
 where the sums/products are over $\gamma =x,y,z$. No additional approximation has been made between the first and second lines because the pauli strings acting on the same sites commute. We have now simplified the time evolution operator into unitary gates that we can directly implement on the quantum device. In figure \ref{fig:TrotterCircuit} we show an example of a trotterized circuit with $N=2$. Note that this circuit has not been compiled for our specific device, so when the circuit is executed the two qubit gates will need to be decomposed into gates that are in our gate set.
-
-\begin{figure*}[t]
-\includegraphics[width=\textwidth]{../Trotterization.png}
-\caption{Circuit diagram of trotterization with two steps. The gates $R_{xx}$, $R_{yy}$, $R_{zz}$ are two qubit rotations (e.g., equation \ref{eqn:rzz} is $R_{zz}(2t)$). The qubits are all initially in the $\ket{0}$ state, and the two $X$ gates flip two qubits to give us the initial condition $\ket{110}$ on qubits 5, 3, and 1 respectively.}
-\label{fig:TrotterCircuit}
-\end{figure*}
-
 
 \section{Simulation Results}
 
