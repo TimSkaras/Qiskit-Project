@@ -22,3 +22,45 @@
   year={1996},
   publisher={American Association for the Advancement of Science}
 }
+@misc{Qiskit,
+       author = {MD Sajid Anis and Abby-Mitchell and H{\'e}ctor Abraham and AduOffei and Rochisha Agarwal and Gabriele Agliardi and Merav Aharoni and Ismail Yunus Akhalwaya and Gadi Aleksandrowicz et al.},
+       title = {Qiskit: An Open-source Framework for Quantum Computing},
+       year = {2021},
+       doi = {10.5281/zenodo.2573505}
+}
+@article{ibmquantum, 
+title={IBM Quantum}, 
+authout={IBM Quantum},
+url={https://quantum-computing.ibm.com/}, 
+journal={https://quantum-computing.ibm.com/}
+} 
+@article{liang2019quantum,
+  title={Quantum fidelity measures for mixed states},
+  author={Liang, Yeong-Cherng and Yeh, Yu-Hao and Mendon{\c{c}}a, Paulo EMF and Teh, Run Yan and Reid, Margaret D and Drummond, Peter D},
+  journal={Reports on Progress in Physics},
+  volume={82},
+  number={7},
+  pages={076001},
+  year={2019},
+  publisher={IOP Publishing}
+}
+@article{smolin2012efficient,
+  title={Efficient method for computing the maximum-likelihood quantum state from measurements with additive gaussian noise},
+  author={Smolin, John A and Gambetta, Jay M and Smith, Graeme},
+  journal={Physical review letters},
+  volume={108},
+  number={7},
+  pages={070502},
+  year={2012},
+  publisher={APS}
+}
+@article{suzuki1991general,
+  title={General theory of fractal path integrals with applications to many-body theories and statistical physics},
+  author={Suzuki, Masuo},
+  journal={Journal of Mathematical Physics},
+  volume={32},
+  number={2},
+  pages={400--407},
+  year={1991},
+  publisher={American Institute of Physics}
+}

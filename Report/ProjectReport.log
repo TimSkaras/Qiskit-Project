@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (MiKTeX 2.9.6800 64-bit) (preloaded format=pdflatex 2018.9.6)  11 MAY 2022 19:31
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (MiKTeX 2.9.6800 64-bit) (preloaded format=pdflatex 2018.9.6)  12 MAY 2022 15:08
 entering extended mode
 **./ProjectReport.tex
 (ProjectReport.tex
@@ -1664,7 +1664,7 @@ G,.JBIG2,.JB2,.eps]
 Package xypdf Info: Line width: 0.39998pt on input line 21.
 \openout3 = `ProjectReportNotes.bib'.
 
-LaTeX Font Info:    Try loading font information for OT1+pcr on input line 40.
+LaTeX Font Info:    Try loading font information for OT1+pcr on input line 27.
 
 ("C:\Users\tskar\AppData\Local\Programs\MiKTeX 2.9\tex\latex\psnfss\ot1pcr.fd"
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
@@ -1720,56 +1720,63 @@ File: ../Trotterization.png Graphic file (type png)
 Package pdftex.def Info: ../Trotterization.png  used on input line 122.
 (pdftex.def)             Requested size: 510.0pt x 203.5749pt.
 [2 <./Rzz.png>] [3 <../Trotterization.png>]
-Underfull \hbox (badness 2065) in paragraph at lines 157--158
-[]\OT1/cmr/m/n/10 The noise mod-els take into ac-count char-ac-ter-is-
- []
-
-<../TomographyFidelities.png, id=36, 462.528pt x 346.896pt>
+<../TomographyFidelities.png, id=37, 462.528pt x 346.896pt>
 File: ../TomographyFidelities.png Graphic file (type png)
 <use ../TomographyFidelities.png>
-Package pdftex.def Info: ../TomographyFidelities.png  used on input line 160.
+Package pdftex.def Info: ../TomographyFidelities.png  used on input line 159.
 (pdftex.def)             Requested size: 255.0pt x 191.25389pt.
 
-Overfull \hbox (9.0pt too wide) in paragraph at lines 160--161
+Overfull \hbox (9.0pt too wide) in paragraph at lines 159--160
  [][] 
  []
 
-(ProjectReport.bbl) [4 <../TomographyFidelities.png>] (ProjectReport.aux) ) 
+
+Underfull \hbox (badness 10000) in paragraph at lines 167--168
+
+ []
+
+(ProjectReport.bbl
+Underfull \hbox (badness 1354) in paragraph at lines 83--86
+ []\OT1/cmr/m/n/9 M. S. Anis, Abby-Mitchell, H. Abra-ham, AduOf-fei,
+ []
+
+) [4 <../TomographyFidelities.png>] (ProjectReport.aux) ) 
 Here is how much of TeX's memory you used:
- 17097 strings out of 492973
- 281922 string characters out of 3126693
- 398531 words of memory out of 3000000
- 20833 multiletter control sequences out of 15000+200000
+ 17115 strings out of 492973
+ 282279 string characters out of 3126693
+ 411305 words of memory out of 3000000
+ 20851 multiletter control sequences out of 15000+200000
  538228 words of font info for 47 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
- 47i,11n,65p,1429b,305s stack positions out of 5000i,500n,10000p,200000b,50000s
-{C:/
-Users/tskar/AppData/Local/Programs/MiKTeX 2.9/fonts/enc/dvips/base/8r.enc}<C:/U
-sers/tskar/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmb
-x12.pfb><C:/Users/tskar/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/am
-sfonts/cm/cmbx9.pfb><C:/Users/tskar/AppData/Local/Programs/MiKTeX 2.9/fonts/typ
-e1/public/amsfonts/cm/cmex10.pfb><C:/Users/tskar/AppData/Local/Programs/MiKTeX 
-2.9/fonts/type1/public/amsfonts/cmextra/cmex7.pfb><C:/Users/tskar/AppData/Local
-/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Users/tskar/
-AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi5.pfb><C:/
-Users/tskar/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cm
-mi6.pfb><C:/Users/tskar/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/am
-sfonts/cm/cmmi7.pfb><C:/Users/tskar/AppData/Local/Programs/MiKTeX 2.9/fonts/typ
-e1/public/amsfonts/cm/cmmi9.pfb><C:/Users/tskar/AppData/Local/Programs/MiKTeX 2
-.9/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/tskar/AppData/Local/Progr
-ams/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr5.pfb><C:/Users/tskar/AppData/
-Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/Users/tsk
-ar/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr9.pfb><C
-:/Users/tskar/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/
-cmsy10.pfb><C:/Users/tskar/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public
-/amsfonts/cm/cmsy5.pfb><C:/Users/tskar/AppData/Local/Programs/MiKTeX 2.9/fonts/
-type1/public/amsfonts/cm/cmsy7.pfb><C:/Users/tskar/AppData/Local/Programs/MiKTe
-X 2.9/fonts/type1/public/amsfonts/cm/cmsy9.pfb><C:/Users/tskar/AppData/Local/Pr
-ograms/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmti9.pfb><C:/Users/tskar/AppD
-ata/Local/Programs/MiKTeX 2.9/fonts/type1/urw/courier/ucrr8a.pfb>
-Output written on ProjectReport.pdf (4 pages, 291588 bytes).
+ 47i,11n,65p,1429b,332s stack positions out of 5000i,500n,10000p,200000b,50000s
+{C:/Users/tskar/AppDat
+a/Local/Programs/MiKTeX 2.9/fonts/enc/dvips/base/8r.enc}<C:/Users/tskar/AppData
+/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Users/
+tskar/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx9.pf
+b><C:/Users/tskar/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts
+/cm/cmex10.pfb><C:/Users/tskar/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/pu
+blic/amsfonts/cmextra/cmex7.pfb><C:/Users/tskar/AppData/Local/Programs/MiKTeX 2
+.9/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Users/tskar/AppData/Local/Prog
+rams/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi5.pfb><C:/Users/tskar/AppDat
+a/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi6.pfb><C:/Users/
+tskar/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi7.pf
+b><C:/Users/tskar/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts
+/cm/cmmi9.pfb><C:/Users/tskar/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/pub
+lic/amsfonts/cm/cmr10.pfb><C:/Users/tskar/AppData/Local/Programs/MiKTeX 2.9/fon
+ts/type1/public/amsfonts/cm/cmr5.pfb><C:/Users/tskar/AppData/Local/Programs/MiK
+TeX 2.9/fonts/type1/public/amsfonts/cm/cmr6.pfb><C:/Users/tskar/AppData/Local/P
+rograms/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/Users/tskar/AppD
+ata/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr9.pfb><C:/Users
+/tskar/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy10.
+pfb><C:/Users/tskar/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfon
+ts/cm/cmsy5.pfb><C:/Users/tskar/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/p
+ublic/amsfonts/cm/cmsy7.pfb><C:/Users/tskar/AppData/Local/Programs/MiKTeX 2.9/f
+onts/type1/public/amsfonts/cm/cmsy9.pfb><C:/Users/tskar/AppData/Local/Programs/
+MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmti9.pfb><C:/Users/tskar/AppData/Loc
+al/Programs/MiKTeX 2.9/fonts/type1/urw/courier/ucrr8a.pfb>
+Output written on ProjectReport.pdf (4 pages, 301388 bytes).
 PDF statistics:
- 100 PDF objects out of 1000 (max. 8388607)
+ 104 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  21 words of extra memory for PDF output out of 10000 (max. 10000000)
 
